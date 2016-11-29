@@ -1,29 +1,28 @@
 FROM rhscl/s2i-base-rhel7
 
-# RHSCL rh-nginx18 image.
+# S2I Image for building an AngularJS application and serving it up
+# via nginx.  Based on the RHSCL rh-nginx18 image.
 #
 # Volumes:
 #  * /var/opt/rh/rh-nginx18/log/nginx/ - Storage for logs
 
 EXPOSE 8080
-EXPOSE 8443
 
 LABEL io.k8s.description="Platform for running AngularJS on nginx" \
-      io.k8s.display-name="Nginx 1.8" \
+      io.k8s.display-name="AngularJS/Webpack running on nginx 1.8" \
       io.openshift.expose-services="8080:http" \
-      io.openshift.expose-services="8443:https" \
-      io.openshift.tags="builder,nginx,rh-nginx18" \
-      BZComponent="rh-nginx18-docker" \
-      Name="rhscl_beta/nginx-18-rhel7" \
+      io.openshift.tags="builder,nginx,rh-nginx18,angularjs" \
+      Name="rhscl/nginx-webpack-docker" \
       Version="1.8" \
       Release="12" \
       io.openshift.s2i.scripts-url=image:///usr/libexec/s2i \
       io.s2i.scripts-url=image:///usr/libexec/s2i \
       Architecture="x86_64"
 
-ENV NGINX_CONFIGURATION_PATH=/opt/app-root/etc/nginx.d
-ENV NGINX_DEFAULT_SERVER_CONFIGURATION_PATH=/opt/app-root/etc/nginx.default.d
-ENV NGINX_ENV_SERVER_CONFIGURATION_PATH=/opt/app-root/etc/nginx.env.d
+ENV NGINX_GLOBAL_CONFIGURATION_PATH=/opt/app-root/etc/nginx.global.d
+ENV NGINX_HTTP_GLOBAL_SERVER_CONFIGURATION_PATH=/opt/app-root/etc/nginx.httpglobal.d
+ENV NGINX_DEFAULT_SERVER_CONFIGURATION_PATH=/opt/app-root/etc/nginx.defaultserver.d
+
 
 RUN INSTALL_PKGS="rh-nodejs4 rh-nodejs4-npm rh-nodejs4-nodejs-nodemon ruby" && \
     yum install -y --setopt=tsflags=nodocs \
@@ -48,8 +47,7 @@ COPY ./s2i/bin/ $STI_SCRIPTS_PATH
 # run and build the applications.
 COPY ./contrib/ /opt/app-root
 
-#RUN sed -i -f /opt/app-root/nginxconf.sed /etc/opt/rh/rh-nginx18/nginx/nginx.conf 
-
+# Copy the nginx configuration to the proper place
 COPY ./contrib/nginx.conf /etc/opt/rh/rh-nginx18/nginx/nginx.conf 
 
 # In order to drop the root user, we have to make some directories world
@@ -63,7 +61,6 @@ RUN mkdir -p /opt/app-root/etc/nginx.d/ && \
 
 USER 1001
 
-VOLUME ["/opt/rh/rh-nginx18/root/usr/share/nginx/html"]
 VOLUME ["/var/opt/rh/rh-nginx18/log/nginx/"]
 
 ENV BASH_ENV=/opt/app-root/etc/scl_enable \
