@@ -17,7 +17,8 @@ LABEL io.k8s.description="Platform for running AngularJS on nginx" \
       Release="12" \
       io.openshift.s2i.scripts-url=image:///usr/libexec/s2i \
       io.s2i.scripts-url=image:///usr/libexec/s2i \
-      Architecture="x86_64"
+      Architecture="x86_64" \
+      io.openshift.s2i.destination=/tmp
 
 ENV NGINX_GLOBAL_CONFIGURATION_PATH=/opt/app-root/etc/nginx.global.d
 ENV NGINX_HTTP_GLOBAL_SERVER_CONFIGURATION_PATH=/opt/app-root/etc/nginx.httpglobal.d
